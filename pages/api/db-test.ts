@@ -1,16 +1,17 @@
 // pages/api/db-test.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { PrismaClient } from "@prisma/client";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const prisma = new PrismaClient();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.status(200).json({ success: true, time: result.rows[0] });
+    const result = await prisma.$queryRaw`SELECT NOW() as now`;
+    res.status(200).json({ ok: true, time: result[0] });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ ok: false, error: String(error) });
+  } finally {
+    // optional: Prisma will reuse connections in serverless; leaving this out is usually fine
+    // await prisma.$disconnect();
   }
 }
