@@ -46,7 +46,7 @@ function makePlan(minutes: number, energy: Energy, focus: Focus) {
   const days = [
     {
       title: "Day 1 — Orient & Intend",
-      micro_action: `Spend ${mins} minutes in the ${anchor}. 2 slow breaths, then write 1 sentence about why ${focus} matters this week.`,
+      micro_action: `Spend ${mins} minutes in ${anchor}. 2 slow breaths, then write 1 sentence about why ${focus} matters this week.`,
       reflection: "Note one feeling you want more of. No fixing, just noticing.",
     },
     {
@@ -99,7 +99,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const reminder =
     "Notice when blame shows up. Replace it with a 1-inch action and a kind next step.";
 
-   const payload = {
+  const payload = {
     ok: true,
     meta: {
       focus,
@@ -146,3 +146,4 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // Default: compact JSON
   return res.status(200).json(payload);
+}
