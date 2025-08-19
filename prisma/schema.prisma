@@ -19,3 +19,27 @@ model Badge {
   label    String
   criteria String
 }
+
+
+model User {
+  id         String       @id @default(uuid())
+  client_id  String       @unique
+  created_at DateTime     @default(now())
+  Completion Completion[]
+
+  @@map("User")
+}
+
+model Completion {
+  id          BigInt   @id @default(autoincrement())
+  user_id     String
+  module_slug String
+  rating      Int?
+  note        String?
+  occurred_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, occurred_at(sort: Desc)])
+  @@map("Completion")
+}
