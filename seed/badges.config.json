@@ -1,0 +1,4 @@
+[
+  { "id": "early_bird", "label": "Early Bird", "criteria": "Complete Morning Momentum 5 times" },
+  { "id": "resilient", "label": "Resilient", "criteria": "Bounce back after 3 setbacks" }
+]
