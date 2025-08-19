@@ -1,0 +1,21 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Module {
+  id      Int     @id @default(autoincrement())
+  title   String
+  slug    String  @unique
+  content String?
+}
+
+model Badge {
+  id       String @id
+  label    String
+  criteria String
+}
