@@ -99,7 +99,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const reminder =
     "Notice when blame shows up. Replace it with a 1-inch action and a kind next step.";
 
-  res.status(200).json({
+   const payload = {
     ok: true,
     meta: {
       focus,
@@ -112,5 +112,37 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     days: plan,
     badge_hint: focus === "routine" ? "Early Bird" : focus === "empathy" ? "Resilient" : null,
     coaching_reminder: reminder,
-  });
-}
+  };
+
+  // Optional pretty JSON (add ?pretty=1)
+  if (String(req.query.pretty || "") === "1") {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.status(200).send(JSON.stringify(payload, null, 2));
+  }
+
+  // Optional basic HTML view (add ?format=html)
+  if (String(req.query.format || "") === "html") {
+    const rows = payload.days.map(d => `
+      <li style="margin: 0 0 12px 0;">
+        <strong>${d.title}</strong><br>
+        <em>Micro-action:</em> ${d.micro_action}<br>
+        <em>Reflection:</em> ${d.reflection}
+      </li>
+    `).join("");
+    const html = `
+      <!doctype html>
+      <meta charset="utf-8">
+      <title>IDR Roadmap</title>
+      <body style="font-family: system-ui, sans-serif; line-height: 1.6; padding: 24px; max-width: 720px;">
+        <h1 style="margin:0 0 8px 0;">IDR Roadmap</h1>
+        <p style="margin:0 0 16px 0;"><strong>Focus:</strong> ${payload.meta.focus} · <strong>${payload.meta.theme}</strong><br>${payload.meta.why}</p>
+        <p style="margin:0 0 16px 0;"><strong>Time:</strong> ${payload.meta.minutes} min · <strong>Energy:</strong> ${payload.meta.energy}</p>
+        <ol style="padding-left: 18px;">${rows}</ol>
+        <p style="margin-top:16px;"><em>${payload.coaching_reminder}</em></p>
+      </body>`;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(200).send(html);
+  }
+
+  // Default: compact JSON
+  return res.status(200).json(payload);
