@@ -114,4 +114,3 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     coaching_reminder: reminder,
   });
 }
-
