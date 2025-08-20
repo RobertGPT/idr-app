@@ -4,8 +4,7 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = global as unknown as { prisma?: PrismaClient };
 export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({ log: ["error", "warn"] });
+  globalForPrisma.prisma ?? new PrismaClient({ log: ["error", "warn"] });
 if (!globalForPrisma.prisma) globalForPrisma.prisma = prisma;
 
 /**
@@ -23,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ ok: false, error: "client_id and module_slug are required" });
       }
 
-      // upsert user by client_id
+      // create/find user by client_id
       const user = await prisma.user.upsert({
         where: { client_id },
         update: {},
