@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
-// Types
-interface Day {
-  title: string;
-  micro_action: string;
-  reflection: string;
-}
-interface Roadmap {
+type Day = { title: string; micro_action: string; reflection: string };
+type Roadmap = {
   ok: boolean;
   meta: {
     focus: string;
@@ -18,8 +13,9 @@ interface Roadmap {
   days: Day[];
   coaching_reminder: string;
   badge_hint?: string | null;
-}
+};
 
+/** Generate or retrieve a unique client ID stored in localStorage. */
 function getClientId(): string {
   if (typeof window === "undefined") return "anon";
   const key = "idr_client_id";
@@ -39,29 +35,39 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
 
+  // Persistent client ID
   const clientId = useMemo(getClientId, []);
 
+  /** Load a new roadmap based on current form selections. */
   async function loadPlan() {
     setLoading(true);
     setSavedMsg(null);
     try {
-      const url = `/api/roadmap?focus=${encodeURIComponent(focus)}&minutes=${minutes}&energy=${encodeURIComponent(energy)}`;
+      const url = `/api/roadmap?focus=${encodeURIComponent(
+        focus
+      )}&minutes=${encodeURIComponent(minutes)}&energy=${encodeURIComponent(
+        energy
+      )}`;
       const resp = await fetch(url);
       const json = await resp.json();
       setData(json);
-    } catch (error) {
+    } catch {
       setData(null);
     } finally {
       setLoading(false);
     }
   }
 
+  // Load a plan on initial render
   useEffect(() => {
     loadPlan();
   }, []);
 
+  /** Record a completion using a GET request with query parameters. */
   async function markDone() {
     if (!data) return;
+
+    // Map each focus to its module slug
     const mapping: Record<string, string> = {
       motivation: "motivation_module",
       boundaries: "boundaries_module",
@@ -70,7 +76,11 @@ export default function Home() {
       routine: "routine_module",
     };
     const module_slug = mapping[focus] ?? "routine_module";
-    const url = `/api/completions?client_id=${encodeURIComponent(clientId)}&module_slug=${encodeURIComponent(module_slug)}`;
+
+    // Build the GET URL to record a completion
+    const url = `/api/completions?client_id=${encodeURIComponent(
+      clientId
+    )}&module_slug=${encodeURIComponent(module_slug)}`;
 
     try {
       const resp = await fetch(url);
@@ -80,7 +90,7 @@ export default function Home() {
       } else {
         setSavedMsg("Could not save just now. Try again in a moment.");
       }
-    } catch (error) {
+    } catch {
       setSavedMsg("Network hiccup. Try again.");
     }
   }
@@ -96,8 +106,11 @@ export default function Home() {
       }}
     >
       <h1 style={{ margin: 0 }}>Ideal Day Roadmap</h1>
-      <p style={{ marginTop: 6, color: "#444" }}>Tiny, kind steps. No all-or-nothing.</p>
+      <p style={{ marginTop: 6, color: "#444" }}>
+        Tiny, kind steps. No all-or-nothing.
+      </p>
 
+      {/* Form controls */}
       <section
         style={{
           display: "grid",
@@ -120,6 +133,7 @@ export default function Home() {
             <option value="visualization">Visualization</option>
           </select>
         </label>
+
         <label>
           <div style={{ fontWeight: 600 }}>Minutes</div>
           <input
@@ -131,6 +145,7 @@ export default function Home() {
             style={{ padding: 6, width: "100%" }}
           />
         </label>
+
         <label>
           <div style={{ fontWeight: 600 }}>Energy</div>
           <select
@@ -145,32 +160,52 @@ export default function Home() {
         </label>
       </section>
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+      {/* Buttons and messages */}
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
         <button
           onClick={loadPlan}
           disabled={loading}
-          style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 8,
+            border: "1px solid #ddd",
+          }}
         >
           {loading ? "Loading…" : "Generate plan"}
         </button>
         <button
           onClick={markDone}
-          style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 8,
+            border: "1px solid #ddd",
+          }}
         >
           Mark today done
         </button>
-        {savedMsg && <span style={{ marginLeft: 8, color: "#0a7" }}>{savedMsg}</span>}
+        {savedMsg && (
+          <span style={{ marginLeft: 8, color: "#0a7" }}>{savedMsg}</span>
+        )}
       </div>
 
+      {/* Render roadmap if loaded */}
       {!data ? (
         <p>Loading…</p>
       ) : (
         <>
           <section style={{ margin: "12px 0 20px 0" }}>
-            <strong>Focus:</strong> {data.meta.focus} · <strong>{data.meta.theme}</strong>
+            <strong>Focus:</strong> {data.meta.focus} ·{" "}
+            <strong>{data.meta.theme}</strong>
             <div style={{ color: "#555" }}>{data.meta.why}</div>
             <div style={{ marginTop: 6 }}>
-              <strong>Time:</strong> {data.meta.minutes} min · <strong>Energy:</strong> {data.meta.energy}
+              <strong>Time:</strong> {data.meta.minutes} min ·{" "}
+              <strong>Energy:</strong> {data.meta.energy}
             </div>
             {data.badge_hint && (
               <div style={{ marginTop: 6, color: "#884400" }}>
@@ -178,6 +213,7 @@ export default function Home() {
               </div>
             )}
           </section>
+
           <ol style={{ paddingLeft: 18 }}>
             {data.days.map((d, i) => (
               <li key={i} style={{ marginBottom: 12 }}>
@@ -191,7 +227,9 @@ export default function Home() {
               </li>
             ))}
           </ol>
-          <p style={{ marginTop: 16, fontStyle: "italic" }}>{data.coaching_reminder}</p>
+          <p style={{ marginTop: 16, fontStyle: "italic" }}>
+            {data.coaching_reminder}
+          </p>
         </>
       )}
     </main>
