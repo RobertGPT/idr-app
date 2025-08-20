@@ -16,8 +16,17 @@ if (!globalForPrisma.prisma) globalForPrisma.prisma = prisma;
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    if (req.method === "POST") {
-      const { client_id, module_slug, rating, note } = req.body ?? {};
+    if (req.method === "POST" ||
+  (req.method === "GET" && typeof req.query.module_slug === "string")
+) {
+
+      const {
+  client_id,
+  module_slug,
+  rating,
+  note,
+} = req.method === "POST" ? req.body : req.query;
+
       if (!client_id || !module_slug) {
         return res.status(400).json({ ok: false, error: "client_id and module_slug are required" });
       }
