@@ -64,18 +64,22 @@ export default function Home() {
     const module_slug = mapping[focus] ?? "routine_module";
 
     try {
-      const resp = await fetch("/api/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: clientId, module_slug }),
-      });
-      const out = await resp.json();
-      if (out.ok) {
-        setSavedMsg("Nice — marked done. Tiny wins add up.");
-      } else {
-        setSavedMsg("Could not save just now. Try again in a moment.");
+        const url = `/api/completions?client_id=${encodeURIComponent(clientId)}&module_slug=${encodeURIComponent(module_slug)}`;
+    const resp = await fetch(url);
+    const out = await resp.json();
+    if (out.ok) {
+      setSavedMsg("Nice — marked done. Tiny wins add up.");
+    } else {
+      setSavedMsg("Could not save just now. Try again in a moment.");
+    }
+  } catch (error) {
+    setSavedMsg("Network hiccup. Try again.");
+  }
+
+      catch (error) {
+    setSavedMsg("Network hiccup. Try again.");
+  } 
       }
-    } catch {
       setSavedMsg("Network hiccup. Try again.");
     }
   }
