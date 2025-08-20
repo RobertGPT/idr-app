@@ -16,7 +16,11 @@ if (!globalForPrisma.prisma) globalForPrisma.prisma = prisma;
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    if (req.method === "POST" ||
+    if (
+  req.method === "POST" ||
+  (req.method === "GET" && typeof req.query.module_slug === "string")
+) {
+
   (req.method === "GET" && typeof req.query.module_slug === "string")
 ) {
 
@@ -25,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   module_slug,
   rating,
   note,
-} = req.method === "POST" ? req.body : req.query;
+} = req.method === 'POST' ? req.body : req.query;
 
       if (!client_id || !module_slug) {
         return res.status(400).json({ ok: false, error: "client_id and module_slug are required" });
@@ -64,14 +68,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       if (!user) return res.status(200).json({ ok: true, completions: [] });
 
-      const completions = await prisma.completion.findMany({
-        where: { user_id: user.id },
-        orderBy: { occurred_at: "desc" },
-        take: limit,
-      });
+const completions = await prisma.completion.findMany({
+  where: { user_id: user.id },
+  orderBy: { occurred_at: "desc" },
+  take: limit,
+});
 
-      return res.status(200).json({ ok: true, count: completions.length, completions });
-    }
+// convert BigInt IDs to plain numbers
+const safeCompletions = completions.map(c => ({
+  ...c,
+  id: Number(c.id),
+}));
+
+return res.status(200).json({
+  ok: true,
+  count: safeCompletions.length,
+  completions: safeCompletions,
+});
+
 
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ ok: false, error: "Method not allowed" });
