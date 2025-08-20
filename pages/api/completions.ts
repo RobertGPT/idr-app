@@ -1,4 +1,4 @@
-// pages/api/completions.ts
+ // pages/api/completions.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient } from "@prisma/client";
 
@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      return res.status(201).json({ ok: true, completion, user });
+      return res.status(201).json({ ok: true });
     }
 
     if (req.method === "GET") {
