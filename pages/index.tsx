@@ -1,14 +1,24 @@
-// pages/index.tsx
 import { useEffect, useMemo, useState } from "react";
 
-type Day = { title: string; micro_action: string; reflection: string };
-type Roadmap = {
+// Types
+interface Day {
+  title: string;
+  micro_action: string;
+  reflection: string;
+}
+interface Roadmap {
   ok: boolean;
-  meta: { focus: string; theme: string; why: string; minutes: number; energy: string };
+  meta: {
+    focus: string;
+    theme: string;
+    why: string;
+    minutes: number;
+    energy: string;
+  };
   days: Day[];
   coaching_reminder: string;
   badge_hint?: string | null;
-};
+}
 
 function getClientId(): string {
   if (typeof window === "undefined") return "anon";
@@ -39,7 +49,7 @@ export default function Home() {
       const resp = await fetch(url);
       const json = await resp.json();
       setData(json);
-    } catch {
+    } catch (error) {
       setData(null);
     } finally {
       setLoading(false);
@@ -48,12 +58,10 @@ export default function Home() {
 
   useEffect(() => {
     loadPlan();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function markDone() {
     if (!data) return;
-    // map focus to module slug (same mapping used in /api/roadmap)
     const mapping: Record<string, string> = {
       motivation: "motivation_module",
       boundaries: "boundaries_module",
@@ -62,37 +70,49 @@ export default function Home() {
       routine: "routine_module",
     };
     const module_slug = mapping[focus] ?? "routine_module";
+    const url = `/api/completions?client_id=${encodeURIComponent(clientId)}&module_slug=${encodeURIComponent(module_slug)}`;
 
     try {
-        const url = `/api/completions?client_id=${encodeURIComponent(clientId)}&module_slug=${encodeURIComponent(module_slug)}`;
-    const resp = await fetch(url);
-    const out = await resp.json();
-    if (out.ok) {
-      setSavedMsg("Nice — marked done. Tiny wins add up.");
-    } else {
-      setSavedMsg("Could not save just now. Try again in a moment.");
-    }
-  } catch (error) {
-    setSavedMsg("Network hiccup. Try again.");
-  }
-
-      catch (error) {
-    setSavedMsg("Network hiccup. Try again.");
-  } 
+      const resp = await fetch(url);
+      const out = await resp.json();
+      if (out.ok) {
+        setSavedMsg("Nice — marked done. Tiny wins add up.");
+      } else {
+        setSavedMsg("Could not save just now. Try again in a moment.");
       }
+    } catch (error) {
       setSavedMsg("Network hiccup. Try again.");
     }
   }
 
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: 24, lineHeight: 1.6, maxWidth: 840, margin: "0 auto" }}>
+    <main
+      style={{
+        fontFamily: "system-ui, sans-serif",
+        padding: 24,
+        lineHeight: 1.6,
+        maxWidth: 840,
+        margin: "0 auto",
+      }}
+    >
       <h1 style={{ margin: 0 }}>Ideal Day Roadmap</h1>
       <p style={{ marginTop: 6, color: "#444" }}>Tiny, kind steps. No all-or-nothing.</p>
 
-      <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", margin: "16px 0" }}>
+      <section
+        style={{
+          display: "grid",
+          gap: 12,
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          margin: "16px 0",
+        }}
+      >
         <label>
           <div style={{ fontWeight: 600 }}>Focus</div>
-          <select value={focus} onChange={e => setFocus(e.target.value)} style={{ padding: 6, width: "100%" }}>
+          <select
+            value={focus}
+            onChange={(e) => setFocus(e.target.value)}
+            style={{ padding: 6, width: "100%" }}
+          >
             <option value="routine">Routine</option>
             <option value="motivation">Motivation</option>
             <option value="boundaries">Boundaries</option>
@@ -102,11 +122,22 @@ export default function Home() {
         </label>
         <label>
           <div style={{ fontWeight: 600 }}>Minutes</div>
-          <input type="number" min={5} max={30} value={minutes} onChange={e => setMinutes(Number(e.target.value))} style={{ padding: 6, width: "100%" }} />
+          <input
+            type="number"
+            min={5}
+            max={30}
+            value={minutes}
+            onChange={(e) => setMinutes(Number(e.target.value))}
+            style={{ padding: 6, width: "100%" }}
+          />
         </label>
         <label>
           <div style={{ fontWeight: 600 }}>Energy</div>
-          <select value={energy} onChange={e => setEnergy(e.target.value)} style={{ padding: 6, width: "100%" }}>
+          <select
+            value={energy}
+            onChange={(e) => setEnergy(e.target.value)}
+            style={{ padding: 6, width: "100%" }}
+          >
             <option value="flex">Best time</option>
             <option value="morning">Morning</option>
             <option value="evening">Evening</option>
@@ -115,10 +146,17 @@ export default function Home() {
       </section>
 
       <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-        <button onClick={loadPlan} disabled={loading} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd" }}>
+        <button
+          onClick={loadPlan}
+          disabled={loading}
+          style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+        >
           {loading ? "Loading…" : "Generate plan"}
         </button>
-        <button onClick={markDone} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd" }}>
+        <button
+          onClick={markDone}
+          style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+        >
           Mark today done
         </button>
         {savedMsg && <span style={{ marginLeft: 8, color: "#0a7" }}>{savedMsg}</span>}
@@ -134,14 +172,22 @@ export default function Home() {
             <div style={{ marginTop: 6 }}>
               <strong>Time:</strong> {data.meta.minutes} min · <strong>Energy:</strong> {data.meta.energy}
             </div>
-            {data.badge_hint && <div style={{ marginTop: 6, color: "#884400" }}><strong>Badge target:</strong> {data.badge_hint}</div>}
+            {data.badge_hint && (
+              <div style={{ marginTop: 6, color: "#884400" }}>
+                <strong>Badge target:</strong> {data.badge_hint}
+              </div>
+            )}
           </section>
           <ol style={{ paddingLeft: 18 }}>
             {data.days.map((d, i) => (
               <li key={i} style={{ marginBottom: 12 }}>
                 <div style={{ fontWeight: 600 }}>{d.title}</div>
-                <div><em>Micro-action:</em> {d.micro_action}</div>
-                <div><em>Reflection:</em> {d.reflection}</div>
+                <div>
+                  <em>Micro-action:</em> {d.micro_action}
+                </div>
+                <div>
+                  <em>Reflection:</em> {d.reflection}
+                </div>
               </li>
             ))}
           </ol>
